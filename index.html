@@ -2140,12 +2140,133 @@ Best regards,
         // Set today's date
         document.getElementById('invoiceDate').valueAsDate = new Date();
         
-        // Mobile menu with accessibility
-        document.getElementById('mobileMenuBtn').addEventListener('click', () => {
-            const menu = document.getElementById('mobileMenu');
-            const isExpanded = menu.classList.contains('active');
-            menu.classList.toggle('active');
-            document.getElementById('mobileMenuBtn').setAttribute('aria-expanded', !isExpanded);
+        // Enhanced routing and navigation system
+        let currentView = 'home';
+        
+        // Show/hide sections based on navigation
+        function navigateTo(view) {
+            currentView = view;
+            
+            // Hide all sections
+            document.querySelectorAll('section[id]').forEach(section => {
+                section.style.display = 'none';
+            });
+            
+            // Show selected section
+            const targetSection = document.getElementById(view);
+            if (targetSection) {
+                targetSection.style.display = 'block';
+                targetSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                announceToScreenReader(`Navigated to ${view} section`);
+            }
+            
+            // Update URL hash
+            window.location.hash = view;
+        }
+        
+        // Handle all navigation clicks
+        document.querySelectorAll('a[href^="#"]').forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                const target = this.getAttribute('href').substring(1);
+                if (target) {
+                    navigateTo(target);
+                    // Close mobile menu if open
+                    document.getElementById('mobileMenu').classList.remove('active');
+                }
+            });
+        });
+        
+        // Handle browser back/forward buttons
+        window.addEventListener('hashchange', () => {
+            const hash = window.location.hash.substring(1);
+            if (hash) {
+                navigateTo(hash);
+            } else {
+                navigateTo('home');
+            }
+        });
+        
+        // Initialize on page load
+        window.addEventListener('load', () => {
+            const hash = window.location.hash.substring(1);
+            if (hash) {
+                navigateTo(hash);
+            } else {
+                // Show all sections on initial load for full-page view
+                document.querySelectorAll('section[id]').forEach(section => {
+                    section.style.display = 'block';
+                });
+            }
+        });
+
+        // Make pricing cards clickable
+        document.querySelectorAll('#pricing .card-hover').forEach(card => {
+            card.addEventListener('click', function() {
+                const plan = this.querySelector('h3').textContent;
+                alert(`You selected the ${plan} plan! Redirecting to checkout...`);
+                // In production, redirect to payment page
+                // window.location.href = '/checkout?plan=' + plan.toLowerCase();
+            });
+        });
+
+        // Make feature cards clickable
+        document.querySelectorAll('#features .card-hover').forEach((card, index) => {
+            card.addEventListener('click', function() {
+                const feature = this.querySelector('h3').textContent;
+                alert(`Learn more about: ${feature}`);
+                // In production, show detailed feature page
+                navigateTo('invoicing');
+            });
+        });
+
+        // Make dashboard stat cards clickable
+        document.querySelectorAll('.stat-card').forEach(card => {
+            card.addEventListener('click', function() {
+                const title = this.querySelector('h4').textContent;
+                alert(`View detailed ${title} analytics`);
+                // In production, show detailed analytics
+            });
+        });
+
+        // Make template cards clickable and functional
+        document.querySelectorAll('.template-card').forEach(card => {
+            card.addEventListener('click', function() {
+                const template = this.dataset.template;
+                document.querySelectorAll('.template-card').forEach(c => {
+                    c.classList.remove('border-purple-600');
+                    c.classList.add('border-gray-300');
+                });
+                this.classList.remove('border-gray-300');
+                this.classList.add('border-purple-600');
+                localStorage.setItem('selectedTemplate', template);
+                announceToScreenReader(`Template ${template} selected`);
+                
+                // Show confirmation
+                const toast = document.createElement('div');
+                toast.className = 'fixed bottom-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-50';
+                toast.textContent = `✓ ${template.charAt(0).toUpperCase() + template.slice(1)} template selected`;
+                document.body.appendChild(toast);
+                setTimeout(() => toast.remove(), 3000);
+            });
+        });
+
+        // Make invoice table rows clickable
+        document.querySelectorAll('#invoiceTableBody tr').forEach(row => {
+            row.addEventListener('click', function() {
+                const invoiceNum = this.querySelector('td:first-child').textContent;
+                alert(`Opening invoice ${invoiceNum}...`);
+                // In production, show invoice detail page
+            });
+        });
+
+        // Make webhook integration cards clickable
+        document.querySelectorAll('[data-integration]').forEach(card => {
+            card.addEventListener('click', function() {
+                const integration = this.dataset.integration;
+                alert(`Setting up ${integration} integration...`);
+                // In production, open integration setup modal
+            });
         });
 
         // Add keyboard navigation for cards
